@@ -32,7 +32,8 @@ function Get-HgStatus {
     $tags = @()
     $commit = ""
     $behind = $false
-    
+    $currentBookmark = ""
+	
     hg summary | foreach {   
       switch -regex ($_) {
         'parent: (\S*) ?(.*)' { $commit = $matches[1]; $tags = $matches[2].Replace("(empty repository)", "").Split(" ", [StringSplitOptions]::RemoveEmptyEntries) } 
@@ -54,6 +55,12 @@ function Get-HgStatus {
       } 
     }
     
+	hg bookmarks | foreach {
+      switch -regex ($_) {
+		' \* \b+(\w+)' { $currentBookmark = $matches[1] }
+	  }
+	}
+	
     return @{"Untracked" = $untracked;
                "Added" = $added;
                "Modified" = $modified;
@@ -63,7 +70,9 @@ function Get-HgStatus {
                "Tags" = $tags;
                "Commit" = $commit;
                "Behind" = $behind;
-               "Branch" = $branch}
+               "Branch" = $branch;
+			   "CurrentBookmark" = $currentBookmark;
+			   }
    }
 }
 

@@ -43,14 +43,17 @@ function Write-HgStatus($status = (get-hgStatus)) {
           
           $tagCounter=0
           $status.Tags | % {
-              write-host $_ -NoNewLine -ForegroundColor $s.TagForegroundColor -BackgroundColor $s.TagBackgroundColor 
-              if($tagCounter -lt ($status.Tags.Length -1)) {
-                write-host ", " -NoNewLine -ForegroundColor $s.TagSeparatorColor -BackgroundColor $s.TagBackgroundColor
-              }
+				if($_ -eq $status.CurrentBookmark){
+					write-host "*" -NoNewLine -ForegroundColor $s.TagSeparatorColor -BackgroundColor $s.TagBackgroundColor
+				}
+				  write-host $_ -NoNewLine -ForegroundColor $s.TagForegroundColor -BackgroundColor $s.TagBackgroundColor 
+				  if($tagCounter -lt ($status.Tags.Length -1)) {
+					write-host ", " -NoNewLine -ForegroundColor $s.TagSeparatorColor -BackgroundColor $s.TagBackgroundColor
+				  }
               $tagCounter++;
           }        
         }
-        
+		
         if($s.ShowPatches) {
           $patches = Get-MqPatches
           if($patches.All.Length) {
