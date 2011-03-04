@@ -3,9 +3,15 @@ $script:hgCommands = @()
 function HgTabExpansion($lastBlock) {
   switch -regex ($lastBlock) { 
     
+    #handles hgtk help <cmd>
+    #handles hgtk <cmd>
+    'thg (help )?(\S*)$' {
+      thgCommands($matches[2]);
+    }
+    
     #handles hg update <branch name>
     #handles hg merge <branch name>
-    'hg (up|update|merge) (\S*)$' {
+    'hg (up|update|merge|co|checkout) (\S*)$' {
       hgLocalBranches($matches[2])
     }
     
@@ -34,12 +40,6 @@ function HgTabExpansion($lastBlock) {
     #handles hg add <path>
     'hg add (\S*)$' {
       hgFiles $matches[1] '\?'
-    }
-    
-    #handles hgtk help <cmd>
-    #handles hgtk <cmd>
-    'hgtk (help )?(\S*)$' {
-      hgtkCommands($matches[2]);
     }
     
     # handles hg diff <path>
@@ -94,8 +94,14 @@ function hgCommands($filter) {
 # By default the hg command list is populated the first time hgCommands is invoked. 
 # Invoke PopulateHgCommands in your profile if you don't want the initial hit. 
 function PopulateHgCommands() {
-   $hgCommands = (hg help) | % {
-    if($_ -match '^ (\S+) (.*)') {
+   $hgCommands = foreach($cmd in (hg help)) {
+    # Stop once we reach the "Enabled Extensions" section of help. 
+    # Not sure if there's a better way to do this...
+    if($cmd -eq "enabled extensions:") {
+      break
+    }
+    
+    if($cmd -match '^ (\S+) (.*)') {
         $matches[1]
      }
   }
@@ -143,9 +149,9 @@ function hgOptions($cmd, $filter) {
 	$optList | sort
 }
 
-function hgtkCommands($filter) {
+function thgCommands($filter) {
   $cmdList = @()
-  $output = hgtk help
+  $output = thg help
   foreach($line in $output) {
     if($line -match '^ (\S+) (.*)') {
       $cmd = $matches[1]
